@@ -1,22 +1,34 @@
-console.log("Neptune.MD V1.0.0 - Bot démarré");
+const express = require('express');
+const { Client, LocalAuth } = require('whatsapp-web.js');
+const qrcode = require('qrcode-terminal');
+const app = express();
 
-process.stdin.on("data", (input) => {
-  const message = input.toString().trim().toLowerCase();
+const PORT = process.env.PORT || 3000;
 
-  switch (message) {
-    case "ping":
-      console.log("pong");
-      break;
-    case "hello":
-      console.log("Salut! Je suis Neptune.MD 🤖");
-      break;
-    case "help":
-      console.log("Commandes disponibles: ping, hello, help, info");
-      break;
-    case "info":
-      console.log("Neptune.MD V1.0.0 - Votre bot sympa sous Node.js");
-      break;
-    default:
-      console.log("Commande inconnue, tape ‘help’ pour la liste.");
+// Serveur Express pour tester le bot
+app.get('/', (req, res) => res.send('Bot WhatsApp actif!'));
+
+app.listen(PORT, () => console.log(`Bot running on port ${PORT}`));
+
+// Setup client WhatsApp avec stockage local des sessions
+const client = new Client({
+  authStrategy: new LocalAuth()
+});
+
+client.on('qr', qr => {
+  // Génère QR code dans la console pour scanner avec WhatsApp mobile
+  qrcode.generate(qr, { small: true });
+  console.log('QR code reçu, scanne avec ton téléphone');
+});
+
+client.on('ready', () => {
+  console.log('Client WhatsApp prêt!');
+});
+
+client.on('message', msg => {
+  if(msg.body.toLowerCase() === 'ping') {
+    msg.reply('pong');
   }
 });
+
+client.initialize();
